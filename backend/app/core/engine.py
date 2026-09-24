@@ -1,12 +1,18 @@
 import os
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 import networkx as nx
 from backend.app.core.winnowing import get_fingerprints, calculate_similarity, scrub_code
 from backend.app.core.ast_normalizer import normalize_ast
 from backend.app.core.codebert import get_embedding, calculate_cosine_similarity
 from backend.app.core.cfg_compiler import CFGCompiler, compare_cfgs
 
-def analyze_submission(student_code: str, reference_code: str, force: bool = False, sieve_threshold: float = 0.10) -> Dict[str, Any]:
+def analyze_submission(
+    student_code: str,
+    reference_code: str,
+    force: bool = False,
+    sieve_threshold: float = 0.10,
+    semantic_score: Optional[float] = None,
+) -> Dict[str, Any]:
     """
     Runs the multi-tier comparison between the student submission and a reference file.
     Follows the dual-sieve pipeline:
@@ -14,6 +20,12 @@ def analyze_submission(student_code: str, reference_code: str, force: bool = Fal
        it is considered safe and deep analysis is skipped (unless force is True).
     2. Deep AST normalization, CFG compilation, and CodeBERT embeddings.
     3. Multi-tier score fusion and diagnostics.
+
+    semantic_score: precomputed, corpus-centered CodeBERT similarity (see
+    codebert.compute_corpus_semantics). Passing it is REQUIRED for a fair
+    comparison — raw CodeBERT cosine saturates near 1.0 for any code solving
+    the same assignment, which would falsely flag genuinely independent
+    answers. If omitted, the legacy raw-cosine path is used as a fallback.
     """
     # Stage 1: Token Winnowing
     student_fg = get_fingerprints(student_code)
@@ -71,17 +83,23 @@ def analyze_submission(student_code: str, reference_code: str, force: bool = Fal
         ref_cfg_serialized = {"nodes": [], "edges": []}
         
     # Stage 4: CodeBERT Semantic Vector
-    try:
-        # Scrub comments and spacing for embedding to focus purely on code semantics
-        scrubbed_student = scrub_code(student_code)
-        scrubbed_ref = scrub_code(reference_code)
-        
-        student_emb = get_embedding(scrubbed_student)
-        ref_emb = get_embedding(scrubbed_ref)
-        
-        semantic_score = calculate_cosine_similarity(student_emb, ref_emb)
-    except Exception as e:
-        semantic_score = 0.0
+    if semantic_score is None:
+        # Legacy single-shot fallback: raw cosine of the pooled embeddings.
+        # NOTE: this saturates near 1.0 for ANY code solving the same task
+        # (shared boilerplate dominates the pooled vector), so it cannot
+        # distinguish independent work from plagiarism. Prefer passing a
+        # corpus-centered semantic_score (see codebert.compute_corpus_semantics).
+        try:
+            # Scrub comments and spacing for embedding to focus purely on code semantics
+            scrubbed_student = scrub_code(student_code)
+            scrubbed_ref = scrub_code(reference_code)
+
+            student_emb = get_embedding(scrubbed_student)
+            ref_emb = get_embedding(scrubbed_ref)
+
+            semantic_score = calculate_cosine_similarity(student_emb, ref_emb)
+        except Exception as e:
+            semantic_score = 0.0
         
     # Multi-Tier Score Fusion
     # Weights: Token 20%, AST + CFG 40% (20% each), Semantic 40%
@@ -90,21 +108,28 @@ def analyze_submission(student_code: str, reference_code: str, force: bool = Fal
     # Obfuscation Analytics Processor
     flag = None
     diagnostics = "No anomaly detected."
-    
+
+    # Semantic thresholds below are calibrated for CORPUS-CENTERED CodeBERT
+    # similarities (see codebert.compute_corpus_semantics), which are far more
+    # discriminative than raw cosine:
+    #   * AI-renamed / de-clustered copies of a reference:     0.45 - 0.85
+    #   * Genuinely independent answers (e.g. the segment-based
+    #     storage/submissions/student_independent_solution.cpp):  < 0.25
+    #
     # Rule 1: GPT-4o mimicry (Variable Renaming & Custom Extraction)
     # Typically: low/mid token overlap, high AST structural mapping, high semantic similarity
-    if token_score < 0.35 and ast_score >= 0.80 and semantic_score >= 0.90:
+    if token_score < 0.35 and ast_score >= 0.80 and semantic_score >= 0.60:
         flag = "AI-Assisted Paraphrasing: GPT-4o / Gemini 1.5 Pattern"
         diagnostics = "Flagged: Variable renaming, whitespace alterations, and custom extraction patterns detected while matching standard tree structures."
         
     # Rule 2: Claude 3.5 mimicry (Advanced Structural Data De-clustering)
     # Typically: very low token overlap, low AST mapping (due to rewrite to basic arrays/structs), but high semantic similarity
-    elif token_score < 0.25 and ast_score < 0.60 and semantic_score >= 0.90:
+    elif token_score < 0.25 and ast_score < 0.60 and semantic_score >= 0.40:
         flag = "AI-Assisted Paraphrasing: Claude 3.5 Pattern"
         diagnostics = "Flagged: Advanced structural data de-clustering. High semantic correlation matching custom struct/array de-composition logic."
         
     # Rule 3: Flat Control Flow Duplication (Gemini 1.5 / General)
-    elif token_score < 0.40 and ast_score >= 0.70 and semantic_score >= 0.92:
+    elif token_score < 0.40 and ast_score >= 0.70 and semantic_score >= 0.55:
         flag = "AI-Assisted Paraphrasing: Flat Logic Duplication"
         diagnostics = "Flagged: Flat control flow structure duplicated. Standard loop and conditional pathways match references exactly."
         

@@ -32,7 +32,7 @@ def test_submission(student_file: str, ref_file: str):
     print(f"Flag       : {result['flag']}")
     
 def main():
-    print("CodeSleuth AI Backend Offline Testing Pipeline")
+    print("Astra Backend Offline Testing Pipeline")
     
     # Test 1: GPT-4o renamed submission against GPT-4o reference
     test_submission("student_gpt4o_renamed.cpp", "reference_gpt4o.cpp")

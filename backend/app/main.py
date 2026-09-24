@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, List
 from backend.app.core.engine import analyze_submission
 
-app = FastAPI(title="CodeSleuth AI API")
+app = FastAPI(title="Astra API")
 
 # Enable CORS for Next.js frontend
 app.add_middleware(
@@ -28,7 +28,7 @@ class CompareRequest(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "CodeSleuth AI Backend API is active"}
+    return {"message": "Astra Backend API is active"}
 
 @app.get("/api/assignments")
 def get_assignments():

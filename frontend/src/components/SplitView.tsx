@@ -23,7 +23,9 @@ export default function SplitView({
   selectedStudentRange,
   selectedRefRange,
 }: SplitViewProps) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const studentEditorRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const refEditorRef = useRef<any>(null);
   const monacoRef = useRef<Monaco | null>(null);
   
@@ -31,6 +33,7 @@ export default function SplitView({
   const refDecorationsRef = useRef<string[]>([]);
 
   // Function to load monaco editor configurations
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleEditorDidMount(editor: any, monaco: Monaco, type: 'student' | 'ref') {
     if (type === 'student') {
       studentEditorRef.current = editor;
@@ -161,11 +164,11 @@ export default function SplitView({
       {/* Inject styling classes for Monaco Editor dynamically */}
       <style jsx global>{`
         .student-highlight-line {
-          background-color: rgba(139, 92, 246, 0.2) !important;
+          background-color: rgba(59, 130, 246, 0.12) !important;
           border-left: 3px solid var(--accent-primary) !important;
         }
         .ref-highlight-line {
-          background-color: rgba(245, 158, 11, 0.2) !important;
+          background-color: rgba(245, 158, 11, 0.12) !important;
           border-left: 3px solid var(--accent-warning) !important;
         }
       `}</style>

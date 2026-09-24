@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CodeSleuth AI: Forensic Plagiarism Scanner",
+  title: "Astra: Forensic Plagiarism Scanner",
   description: "AI-Assisted C++ Source Diagnostics and Obfuscation Detector",
 };
 
