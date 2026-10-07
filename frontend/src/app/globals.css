@@ -1,6 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
+  color-scheme: dark;
+
   /* Background */
   --bg-base:    #0e0f11;
   --bg-surface: #141518;
@@ -48,6 +50,63 @@
   --radius-sm: 3px;
 }
 
+/* ── Light theme ─────────────────────────────────────── */
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Background */
+  --bg-base:    #f2f3f6;
+  --bg-surface: #ffffff;
+  --bg-elevated:#e9ebf0;
+  --bg-hover:   #dfe2e9;
+
+  /* Borders */
+  --border-subtle:  rgba(18, 24, 38, 0.06);
+  --border-default: rgba(18, 24, 38, 0.12);
+  --border-strong:  rgba(18, 24, 38, 0.22);
+
+  /* Text */
+  --text-primary:   #17181d;
+  --text-secondary: #555865;
+  --text-muted:     #8b8e9b;
+  --text-faint:     #c3c5cf;
+
+  /* Accents — same hues, light-tinted dims for readable tags */
+  --accent-blue:    #2f63e7;
+  --accent-blue-dim:#dbe6ff;
+  --accent-amber:   #a86a04;
+  --accent-amber-dim:#fbeed3;
+  --accent-red:     #b32727;
+  --accent-red-dim: #fbdedd;
+  --accent-green:   #1e7d52;
+  --accent-green-dim:#d2edde;
+
+  /* Legacy compat aliases */
+  --accent-primary: var(--accent-blue);
+  --accent-warning: var(--accent-amber);
+  --accent-danger:  var(--accent-red);
+  --accent-success: var(--accent-green);
+  --accent-purple:  #5b4fe0;
+  --accent-info:    var(--accent-blue);
+  --border-color:   var(--border-default);
+  --border-glow:    var(--border-strong);
+}
+
+[data-theme='light'] .status-tag-red   { color: #b32727; }
+[data-theme='light'] .status-tag-amber { color: #a86a04; }
+[data-theme='light'] .status-tag-green { color: #1e7d52; }
+[data-theme='light'] .status-tag-blue  { color: #2f63e7; }
+[data-theme='light'] .badge-danger  { color: #b32727; }
+[data-theme='light'] .badge-warning { color: #a86a04; }
+[data-theme='light'] .badge-success { color: #1e7d52; }
+[data-theme='light'] .badge-info    { color: #2f63e7; }
+[data-theme='light'] .btn-primary:hover { background-color: #3f71f0; }
+[data-theme='light'] .dropzone:hover,
+[data-theme='light'] .dropzone.active {
+  background: rgba(47, 99, 231, 0.05);
+}
+[data-theme='light'] ::-webkit-scrollbar-thumb:hover { background: rgba(18,24,38,0.25); }
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -63,6 +122,19 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Native form controls follow the active theme */
+select,
+textarea,
+input {
+  color-scheme: inherit;
+}
+
+select option {
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 /* ── Scrollbar ─────────────────────────────────────────── */

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import Editor, { Monaco } from '@monaco-editor/react';
 import { FileCode, Sparkles } from 'lucide-react';
+import { useTheme } from '../layout/ThemeProvider';
 
 interface CodeRange {
   start_line: number;
@@ -17,6 +18,7 @@ interface CodeInspectorProps {
   selectedStudentRange: CodeRange | null;
   selectedRefRange: CodeRange | null;
   modelName: string;
+  language?: string;
 }
 
 export default function CodeInspector({
@@ -25,6 +27,7 @@ export default function CodeInspector({
   selectedStudentRange,
   selectedRefRange,
   modelName,
+  language = 'cpp',
 }: CodeInspectorProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const studentEditorRef = useRef<any>(null);
@@ -34,6 +37,8 @@ export default function CodeInspector({
 
   const studentDecorationsRef = useRef<string[]>([]);
   const refDecorationsRef = useRef<string[]>([]);
+  const { theme: appTheme } = useTheme();
+  const monacoTheme = appTheme === 'light' ? 'vs' : 'vs-dark';
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function handleEditorDidMount(editor: any, monaco: Monaco, type: 'student' | 'ref') {
@@ -121,7 +126,6 @@ export default function CodeInspector({
     lineHeight: 20,
     scrollBeyondLastLine: false,
     automaticLayout: true,
-    theme: 'vs-dark',
     domReadOnly: true,
   };
 
@@ -157,15 +161,16 @@ export default function CodeInspector({
             <span className="badge badge-info" style={{ fontSize: '0.7rem' }}>
               {studentLineCount} lines
             </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>C++</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{language}</span>
           </div>
         </div>
 
         <div style={{ flex: 1, position: 'relative' }}>
           <Editor
             height="100%"
-            language="cpp"
+            language={language}
             value={studentCode}
+            theme={monacoTheme}
             options={editorOptions}
             onMount={(editor, monaco) => handleEditorDidMount(editor, monaco, 'student')}
           />
@@ -199,15 +204,16 @@ export default function CodeInspector({
             <span className="badge badge-warning" style={{ fontSize: '0.7rem' }}>
               {refLineCount} lines
             </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>C++</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{language}</span>
           </div>
         </div>
 
         <div style={{ flex: 1, position: 'relative' }}>
           <Editor
             height="100%"
-            language="cpp"
+            language={language}
             value={refCode}
+            theme={monacoTheme}
             options={editorOptions}
             onMount={(editor, monaco) => handleEditorDidMount(editor, monaco, 'ref')}
           />

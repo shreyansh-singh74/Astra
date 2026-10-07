@@ -1,11 +1,19 @@
+import hashlib
+from typing import Dict, List
+
+import numpy as np
 import torch
 from transformers import AutoTokenizer, AutoModel
-import numpy as np
-from typing import List
 
 # Cache model and tokenizer globally to avoid reloading them on each request
 _tokenizer = None
 _model = None
+
+# Embedding memo keyed by content hash: bulk scans compare N submissions
+# against the same vault references, so reference embeddings would otherwise
+# be recomputed N times.
+_emb_cache: Dict[str, np.ndarray] = {}
+
 
 def get_codebert_model():
     global _tokenizer, _model
@@ -16,23 +24,30 @@ def get_codebert_model():
         _model.eval() # Set model to evaluation mode
     return _tokenizer, _model
 
+
 def get_embedding(code: str) -> np.ndarray:
     """
     Generates a 768-dimensional semantic embedding for a code snippet
     using the microsoft/codebert-base model.
     """
+    cache_key = hashlib.sha1(code.encode("utf-8")).hexdigest()
+    cached = _emb_cache.get(cache_key)
+    if cached is not None:
+        return cached
+
     tokenizer, model = get_codebert_model()
-    
+
     # Tokenize input code with truncation to 512 tokens
     inputs = tokenizer(code, return_tensors="pt", truncation=True, max_length=512)
-    
+
     with torch.no_grad():
         outputs = model(**inputs)
-        
+
     # Apply mean-pooling over the sequence length dimension (dim=1)
     # output.last_hidden_state shape: [batch_size, sequence_length, hidden_size]
     # mean shape: [hidden_size]
     embeddings = outputs.last_hidden_state.mean(dim=1).squeeze().numpy()
+    _emb_cache[cache_key] = embeddings
     return embeddings
 
 def calculate_cosine_similarity(emb1: np.ndarray, emb2: np.ndarray) -> float:
@@ -72,13 +87,22 @@ def compute_corpus_semantics(student_code: str, reference_codes: List[str]) -> L
     student_emb = get_embedding(student_code)
     ref_embs = [get_embedding(code) for code in reference_codes]
 
-    corpus = np.vstack([student_emb] + ref_embs)
-    corpus_mean = corpus.mean(axis=0)
+    # Mean-centering needs at least 2 references (a 3-vector corpus): with a
+    # single reference the two centered vectors are antiparallel by
+    # construction and the cosine is always -1, so fall back to raw cosine.
+    if len(ref_embs) >= 2:
+        corpus = np.vstack([student_emb] + ref_embs)
+        corpus_mean = corpus.mean(axis=0)
 
-    centered_student = student_emb - corpus_mean
-    centered_refs = [emb - corpus_mean for emb in ref_embs]
+        centered_student = student_emb - corpus_mean
+        centered_refs = [emb - corpus_mean for emb in ref_embs]
+
+        return [
+            max(0.0, calculate_cosine_similarity(centered_student, centered_ref))
+            for centered_ref in centered_refs
+        ]
 
     return [
-        max(0.0, calculate_cosine_similarity(centered_student, centered_ref))
-        for centered_ref in centered_refs
+        max(0.0, calculate_cosine_similarity(student_emb, ref_emb))
+        for ref_emb in ref_embs
     ]

@@ -15,7 +15,7 @@ interface ModelAnalysisResult {
   cfg_score: number;
   semantic_score: number;
   flag: string | null;
-  diagnostics: string;
+  diagnostics?: string;
 }
 
 interface MultiModelMatrixProps {

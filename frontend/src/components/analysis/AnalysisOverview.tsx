@@ -18,11 +18,15 @@ interface ModelAnalysisResult {
   cfg_score: number;
   semantic_score: number;
   flag: string | null;
-  diagnostics: string;
+  diagnostics?: string;
+  status?: string;
+  student_cfg?: { nodes: unknown[]; edges: unknown[] };
+  ref_cfg?: { nodes: unknown[]; edges: unknown[] };
 }
 
 interface ReportData {
-  assignment_id: string;
+  assignment_id?: string | number;
+  report_id?: number;
   is_flagged: boolean;
   flagged_reasons: string[];
   results: Record<string, ModelAnalysisResult>;

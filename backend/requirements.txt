@@ -4,6 +4,9 @@ pydantic
 python-multipart
 tree-sitter>=0.21.0
 tree-sitter-cpp
+tree-sitter-python
+tree-sitter-java
+httpx
 torch --extra-index-url https://download.pytorch.org/whl/cpu
 transformers
 scikit-learn

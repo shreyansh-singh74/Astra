@@ -27,9 +27,10 @@ interface ModelAnalysisResult {
   cfg_score: number;
   semantic_score: number;
   flag: string | null;
-  diagnostics: string;
-  student_cfg: CFGGraph;
-  ref_cfg: CFGGraph;
+  diagnostics?: string;
+  status?: string;
+  student_cfg?: CFGGraph;
+  ref_cfg?: CFGGraph;
 }
 
 interface InspectorWorkspaceProps {
@@ -45,6 +46,7 @@ interface InspectorWorkspaceProps {
   modelName: string;
   sieveThreshold: number;
   forceAnalysis: boolean;
+  language?: string;
 }
 
 export default function InspectorWorkspace({
@@ -60,6 +62,7 @@ export default function InspectorWorkspace({
   modelName,
   sieveThreshold,
   forceAnalysis,
+  language = 'cpp',
 }: InspectorWorkspaceProps) {
   return (
     <div style={{ borderTop: '1px solid var(--border-default)', paddingTop: '1.25rem' }}>
@@ -106,13 +109,14 @@ export default function InspectorWorkspace({
           selectedStudentRange={selectedStudentRange}
           selectedRefRange={selectedRefRange}
           modelName={modelName}
+          language={language}
         />
       )}
 
       {activeTab === 'cfg' && activeResult && (
         <CfgExplorer
-          studentCfg={activeResult.student_cfg}
-          refCfg={activeResult.ref_cfg}
+          studentCfg={activeResult.student_cfg || { nodes: [], edges: [] }}
+          refCfg={activeResult.ref_cfg || { nodes: [], edges: [] }}
           onSelectStudentNode={onSelectStudentRange}
           onSelectRefNode={onSelectRefRange}
         />

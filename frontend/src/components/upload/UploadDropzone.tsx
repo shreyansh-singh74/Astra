@@ -54,7 +54,7 @@ export default function UploadDropzone({ onFileLoaded, isComparing }: UploadDrop
     >
       <input
         type="file"
-        accept=".cpp,.cxx,.cc,.h,.hpp"
+        accept=".cpp,.cxx,.cc,.c,.h,.hpp,.py,.java"
         onChange={handleFileChange}
         style={{ display: 'none' }}
         disabled={isComparing}

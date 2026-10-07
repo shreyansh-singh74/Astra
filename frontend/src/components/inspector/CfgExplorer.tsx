@@ -262,7 +262,6 @@ export default function CfgExplorer({
             if (isBack) {
               // Curved back-edge for loops (arc to the left)
               const cx = Math.min(e.x1, e.x2) - 50;
-              const cy = (e.y1 + e.y2) / 2;
               return (
                 <path
                   key={`e-${idx}`}

@@ -1,133 +1,102 @@
 'use client';
 
 import React from 'react';
-import { SlidersHorizontal, RefreshCw, Layers, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ScanSearch, Layers, Users, Settings2, FlaskConical, Sun, Moon } from 'lucide-react';
+import { useTheme } from './ThemeProvider';
 
-export interface AIModel {
-  key: string;
-  name: string;
-  code: string;
-}
+const LINKS = [
+  { href: '/', label: 'Scan', icon: ScanSearch },
+  { href: '/bulk', label: 'Bulk', icon: Users },
+  { href: '/assignments', label: 'Assignments', icon: Layers },
+  { href: '/evaluation', label: 'Evaluation', icon: FlaskConical },
+  { href: '/settings', label: 'Settings', icon: Settings2 },
+];
 
-export interface Assignment {
-  id: string;
-  name: string;
-  description: string;
-  ai_vault: Record<string, AIModel>;
-}
+export default function Navbar() {
+  const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname.startsWith(href);
 
-interface NavbarProps {
-  assignments: Assignment[];
-  activeAssignment: Assignment | null;
-  onSelectAssignment: (assignment: Assignment) => void;
-  onRefresh: () => void;
-  onOpenSettings: () => void;
-}
-
-export default function Navbar({
-  assignments,
-  activeAssignment,
-  onSelectAssignment,
-  onRefresh,
-  onOpenSettings,
-}: NavbarProps) {
   return (
-    <header style={{
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '1.5rem',
-      paddingBottom: '1rem',
-      borderBottom: '1px solid var(--border-default)',
-    }}>
-      {/* Brand */}
+    <header
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.5rem',
+        paddingBottom: '1rem',
+        borderBottom: '1px solid var(--border-default)',
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1.75rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          {/* Wordmark */}
+        <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-            <span style={{
-              fontSize: '1.1rem',
-              fontWeight: 700,
-              letterSpacing: '-0.03em',
-              color: 'var(--text-primary)',
-            }}>
+            <span
+              style={{
+                fontSize: '1.1rem',
+                fontWeight: 700,
+                letterSpacing: '-0.03em',
+                color: 'var(--text-primary)',
+              }}
+            >
               Astra
             </span>
-            <span style={{
-              fontSize: '0.67rem',
-              color: 'var(--text-muted)',
-              fontFamily: 'var(--font-mono)',
-              letterSpacing: '0.02em',
-              marginTop: '1px',
-            }}>
+            <span
+              style={{
+                fontSize: '0.67rem',
+                color: 'var(--text-muted)',
+                fontFamily: 'var(--font-mono)',
+                letterSpacing: '0.02em',
+                marginTop: '1px',
+              }}
+            >
               forensic console
             </span>
           </div>
-        </div>
+        </Link>
 
-        {/* Assignment selector — minimal inline pill */}
-        {assignments.length > 0 && (
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            background: 'var(--bg-elevated)',
-            padding: '0.3rem 0.6rem 0.3rem 0.75rem',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--border-default)',
-            cursor: 'pointer',
-          }}>
-            <Layers size={12} style={{ color: 'var(--text-muted)' }} />
-            <select
-              value={activeAssignment?.id || ''}
-              onChange={(e) => {
-                const found = assignments.find(a => a.id === e.target.value);
-                if (found) onSelectAssignment(found);
-              }}
+        <nav style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          {LINKS.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
               style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-primary)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
                 fontSize: '0.8rem',
-                fontWeight: 500,
-                cursor: 'pointer',
-                outline: 'none',
+                fontWeight: isActive(href) ? 600 : 500,
+                color: isActive(href) ? 'var(--text-primary)' : 'var(--text-muted)',
+                textDecoration: 'none',
+                padding: '0.4rem 0.75rem',
+                borderRadius: 'var(--radius-md)',
+                background: isActive(href) ? 'var(--bg-elevated)' : 'transparent',
+                border: `1px solid ${isActive(href) ? 'var(--border-default)' : 'transparent'}`,
               }}
             >
-              {assignments.map(a => (
-                <option key={a.id} value={a.id} style={{ background: 'var(--bg-elevated)', color: 'var(--text-primary)' }}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={11} style={{ color: 'var(--text-muted)' }} />
-          </div>
-        )}
+              <Icon size={13} />
+              {label}
+            </Link>
+          ))}
+        </nav>
       </div>
 
-      {/* Right controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        {/* Live indicator */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.4rem',
-          fontSize: '0.75rem',
-          color: 'var(--text-muted)',
-          padding: '0.3rem 0.65rem',
-          marginRight: '0.25rem',
-        }}>
-          <span className="status-dot status-dot-green pulse" />
-          <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>live</span>
-        </div>
-
-        <button className="btn btn-ghost" onClick={onRefresh} title="Reload AI Vault">
-          <RefreshCw size={13} /> Refresh
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+        <button
+          className="btn btn-ghost"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          style={{ padding: '0.35rem 0.5rem' }}
+        >
+          {theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+          <span style={{ fontSize: '0.75rem' }}>{theme === 'dark' ? 'Light' : 'Dark'}</span>
         </button>
-
-        <button className="btn" onClick={onOpenSettings} title="Pipeline Settings">
-          <SlidersHorizontal size={13} /> Settings
-        </button>
+        <span className="status-dot status-dot-green pulse" />
+        <span style={{ color: 'var(--text-secondary)', fontWeight: 500 }}>live</span>
       </div>
     </header>
   );

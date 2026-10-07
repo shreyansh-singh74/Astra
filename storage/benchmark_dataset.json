@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ai_student_claude35_arrays.cpp",
+    "filename": "student_claude35_arrays.cpp",
+    "code": "#include <vector>\n#include <cmath>\n\n// Claude 3.5-style check logic, but using std::pair instead of Coordinate struct\nbool checkStation(std::pair<int, int> spot, const std::vector<std::pair<int, int>>& locations) {\n    for (const auto& loc : locations) {\n        if (loc.first == spot.first && loc.second == spot.second) return true;\n    }\n    return false;\n}\n\n// Claude 3.5-style route verification using std::pair\nbool evaluateRoute(std::vector<std::pair<int, int>> coordinates, std::vector<std::pair<int, int>> stations) {\n    int juice = 100;\n    \n    for (size_t i = 1; i < coordinates.size(); ++i) {\n        int dist = std::abs(coordinates[i].first - coordinates[i-1].first) + std::abs(coordinates[i].second - coordinates[i-1].second);\n        juice -= dist;\n        \n        if (juice <= 0) {\n            return false;\n        }\n        \n        if (checkStation(coordinates[i], stations)) {\n            juice = 100;\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "anthropic",
+    "language": "cpp",
+    "line_count": 24
+  },
+  {
+    "id": "ai_student_gemini15_loops.cpp",
+    "filename": "student_gemini15_loops.cpp",
+    "code": "#include <vector>\n#include <cmath>\n\n// Gemini 1.5-style nested inline execution, but variables and comments altered\nbool checkCartRoute(std::vector<std::pair<int, int>>& path, std::vector<std::pair<int, int>>& chargers) {\n    int energy = 100;\n    \n    // Iterate through grid path\n    for(int i = 0; i < (int)path.size() - 1; i++) {\n        // Calculate energy loss using inline Manhattan equation\n        energy -= (std::abs(path[i].first - path[i+1].first) + std::abs(path[i].second - path[i+1].second));\n        if(energy <= 0) return false;\n        \n        // Search charging spots\n        for(const auto& pad : chargers) {\n            if(pad.first == path[i+1].first && pad.second == path[i+1].second) {\n                energy = 100;\n                break;\n            }\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "google",
+    "language": "cpp",
+    "line_count": 20
+  },
+  {
+    "id": "ai_student_gpt4o_renamed.cpp",
+    "filename": "student_gpt4o_renamed.cpp",
+    "code": "#include <vector>\n#include <cmath>\n#include <algorithm>\n\n// Renamed helper function\nint getManhattanDistance(std::pair<int, int> a, std::pair<int, int> b) {\n    return std::abs(a.first - b.first) + std::abs(a.second - b.second);\n}\n\n// Renamed main function and parameters\nbool isPathFeasible(std::vector<std::pair<int, int>> points, std::vector<std::pair<int, int>> powerStations) {\n    int chargeRemaining = 100; // Renamed variable\n    \n    for (size_t idx = 0; idx < points.size() - 1; ++idx) {\n        chargeRemaining -= getManhattanDistance(points[idx], points[idx+1]);\n        if (chargeRemaining <= 0) return false;\n        \n        // Renamed variable usage\n        auto searchIt = std::find(powerStations.begin(), powerStations.end(), points[idx+1]);\n        if (searchIt != powerStations.end()) {\n            chargeRemaining = 100;\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "openai",
+    "language": "cpp",
+    "line_count": 21
+  },
+  {
+    "id": "human_student_independent_solution.cpp",
+    "filename": "student_independent_solution.cpp",
+    "code": "#include <vector>\n#include <cmath>\n#include <algorithm>\n\n// Genuinely independent solution: segment-based feasibility check.\n// Instead of simulating the battery step by step, the route is split\n// at every charging pad and each stretch is validated on its own.\n\nstruct Node {\n    int x;\n    int y;\n    bool operator==(const Node& other) const {\n        return x == other.x && y == other.y;\n    }\n};\n\n// True if travelling from index `start` to index `end` never consumes\n// the full 100-unit battery before reaching the next pad.\nbool stretchIsAffordable(const std::vector<Node>& route, size_t start, size_t end) {\n    int spent = 0;\n    for (size_t i = start + 1; i <= end; ++i) {\n        spent += std::abs(route[i].x - route[i - 1].x) + std::abs(route[i].y - route[i - 1].y);\n        if (spent >= 100) {\n            return false;\n        }\n    }\n    return true;\n}\n\nbool canCompleteDelivery(const std::vector<Node>& route, const std::vector<Node>& chargingPads) {\n    if (route.size() < 2) {\n        return true;\n    }\n\n    size_t segmentStart = 0;\n    for (size_t i = 1; i < route.size(); ++i) {\n        if (std::find(chargingPads.begin(), chargingPads.end(), route[i]) != chargingPads.end()) {\n            if (!stretchIsAffordable(route, segmentStart, i)) {\n                return false;\n            }\n            segmentStart = i;\n        }\n    }\n    return stretchIsAffordable(route, segmentStart, route.size() - 1);\n}",
+    "label": 0,
+    "label_name": "human",
+    "problem_id": "problem_1",
+    "model_family": "human",
+    "language": "cpp",
+    "line_count": 40
+  },
+  {
+    "id": "ai_vault_reference_claude35.cpp",
+    "filename": "reference_claude35.cpp",
+    "code": "#include <vector>\n#include <cmath>\n\nstruct Coordinate {\n    int x;\n    int y;\n};\n\nbool isChargerStation(const Coordinate& c, const std::vector<Coordinate>& stations) {\n    for (const auto& station : stations) {\n        if (station.x == c.x && station.y == c.y) return true;\n    }\n    return false;\n}\n\nbool verifyWarehouseRoute(std::vector<Coordinate> path, std::vector<Coordinate> batteryStations) {\n    int energyLevel = 100;\n    \n    for (size_t i = 1; i < path.size(); ++i) {\n        int cost = std::abs(path[i].x - path[i-1].x) + std::abs(path[i].y - path[i-1].y);\n        energyLevel -= cost;\n        \n        if (energyLevel <= 0) {\n            return false;\n        }\n        \n        if (isChargerStation(path[i], batteryStations)) {\n            energyLevel = 100;\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "anthropic",
+    "language": "cpp",
+    "line_count": 26
+  },
+  {
+    "id": "ai_vault_reference_deepseek.cpp",
+    "filename": "reference_deepseek.cpp",
+    "code": "#include <vector>\n#include <cstdlib>\n\nbool solveDelivery(std::vector<std::pair<int,int>> route, std::vector<std::pair<int,int>> pads) {\n    int p = 100;\n    size_t len = route.size();\n    for(size_t i = 1; i < len; ++i) {\n        p -= abs(route[i].first - route[i-1].first) + abs(route[i].second - route[i-1].second);\n        if(p <= 0) return false;\n        \n        bool charged = false;\n        for(size_t j = 0; j < pads.size(); ++j) {\n            if(pads[j] == route[i]) { charged = true; break; }\n        }\n        p = charged ? 100 : p;\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "deepseek",
+    "language": "cpp",
+    "line_count": 16
+  },
+  {
+    "id": "ai_vault_reference_gemini15.cpp",
+    "filename": "reference_gemini15.cpp",
+    "code": "#include <vector>\n#include <cmath>\n\nbool checkRouteSafety(std::vector<std::pair<int, int>>& r, std::vector<std::pair<int, int>>& c) {\n    int b = 100;\n    for(int idx = 0; idx < (int)r.size() - 1; idx++) {\n        b -= (std::abs(r[idx].first - r[idx+1].first) + std::abs(r[idx].second - r[idx+1].second));\n        if(b <= 0) return false;\n        \n        for(const auto& pad : c) {\n            if(pad.first == r[idx+1].first && pad.second == r[idx+1].second) {\n                b = 100;\n                break;\n            }\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "google",
+    "language": "cpp",
+    "line_count": 16
+  },
+  {
+    "id": "ai_vault_reference_gpt4o.cpp",
+    "filename": "reference_gpt4o.cpp",
+    "code": "#include <vector>\n#include <cmath>\n#include <algorithm>\n\nint calculateManhattan(std::pair<int, int> p1, std::pair<int, int> p2) {\n    return std::abs(p1.first - p2.first) + std::abs(p1.second - p2.second);\n}\n\nbool canCompleteRoute(std::vector<std::pair<int, int>> route, std::vector<std::pair<int, int>> chargers) {\n    int currentBattery = 100;\n    \n    for (size_t i = 0; i < route.size() - 1; ++i) {\n        currentBattery -= calculateManhattan(route[i], route[i+1]);\n        if (currentBattery <= 0) return false;\n        \n        // Check if current spot is a charger\n        auto it = std::find(chargers.begin(), chargers.end(), route[i+1]);\n        if (it != chargers.end()) {\n            currentBattery = 100;\n        }\n    }\n    return true;\n}\n",
+    "label": 1,
+    "label_name": "ai",
+    "problem_id": "problem_1",
+    "model_family": "openai",
+    "language": "cpp",
+    "line_count": 19
+  }
+]
